@@ -7,51 +7,56 @@ import (
 	. "github.com/woodie/expect"
 )
 
+type spyT struct {
+	testing.TB
+	failed bool
+}
+
+func (s *spyT) Helper() {}
+
+func (s *spyT) Errorf(format string, args ...interface{}) {
+	s.failed = true
+}
+
 func TestExpectToPassesAndFails(t *testing.T) {
-	passed := t.Run("passing", func(t *testing.T) {
-		Expect(t, 2+2).To(Equal(4))
-	})
-	if !passed {
-		t.Fatal("expected a matching To to pass")
+	pass := &spyT{}
+	Expect(pass, 2+2).To(Equal(4))
+	if pass.failed {
+		t.Error("expected a matching To to pass")
 	}
 
-	passed = t.Run("failing", func(t *testing.T) {
-		Expect(t, 2+2).To(Equal(5))
-	})
-	if passed {
-		t.Fatal("expected a mismatched To to fail")
+	fail := &spyT{}
+	Expect(fail, 2+2).To(Equal(5))
+	if !fail.failed {
+		t.Error("expected a mismatched To to fail")
 	}
 }
 
 func TestNotToPassesAndFails(t *testing.T) {
-	passed := t.Run("passing", func(t *testing.T) {
-		Expect(t, 2+2).NotTo(Equal(5))
-	})
-	if !passed {
-		t.Fatal("expected a mismatched NotTo to pass")
+	pass := &spyT{}
+	Expect(pass, 2+2).NotTo(Equal(5))
+	if pass.failed {
+		t.Error("expected a mismatched NotTo to pass")
 	}
 
-	passed = t.Run("failing", func(t *testing.T) {
-		Expect(t, 2+2).NotTo(Equal(4))
-	})
-	if passed {
-		t.Fatal("expected a matching NotTo to fail")
+	fail := &spyT{}
+	Expect(fail, 2+2).NotTo(Equal(4))
+	if !fail.failed {
+		t.Error("expected a matching NotTo to fail")
 	}
 }
 
 func TestToNotIsAnAliasForNotTo(t *testing.T) {
-	passed := t.Run("passing", func(t *testing.T) {
-		Expect(t, 2+2).ToNot(Equal(5))
-	})
-	if !passed {
-		t.Fatal("expected a mismatched ToNot to pass")
+	pass := &spyT{}
+	Expect(pass, 2+2).ToNot(Equal(5))
+	if pass.failed {
+		t.Error("expected a mismatched ToNot to pass")
 	}
 
-	passed = t.Run("failing", func(t *testing.T) {
-		Expect(t, 2+2).ToNot(Equal(4))
-	})
-	if passed {
-		t.Fatal("expected a matching ToNot to fail")
+	fail := &spyT{}
+	Expect(fail, 2+2).ToNot(Equal(4))
+	if !fail.failed {
+		t.Error("expected a matching ToNot to fail")
 	}
 }
 
