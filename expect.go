@@ -44,6 +44,12 @@ func (e Expectation[T]) NotTo(m Matcher[T]) {
 	}
 }
 
+// ToNot is an alias for NotTo, matching Gomega's own To/ToNot/NotTo naming exactly.
+func (e Expectation[T]) ToNot(m Matcher[T]) {
+	e.t.Helper()
+	e.NotTo(m)
+}
+
 type equalMatcher[T comparable] struct{ want T }
 
 func (m equalMatcher[T]) Match(got T) bool { return got == m.want }

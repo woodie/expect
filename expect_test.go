@@ -39,6 +39,22 @@ func TestNotToPassesAndFails(t *testing.T) {
 	}
 }
 
+func TestToNotIsAnAliasForNotTo(t *testing.T) {
+	passed := t.Run("passing", func(t *testing.T) {
+		Expect(t, 2+2).ToNot(Equal(5))
+	})
+	if !passed {
+		t.Fatal("expected a mismatched ToNot to pass")
+	}
+
+	passed = t.Run("failing", func(t *testing.T) {
+		Expect(t, 2+2).ToNot(Equal(4))
+	})
+	if passed {
+		t.Fatal("expected a matching ToNot to fail")
+	}
+}
+
 func TestEqual(t *testing.T) {
 	if !Equal(5).Match(5) {
 		t.Error("Equal(5).Match(5) = false")
