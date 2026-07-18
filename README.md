@@ -3,6 +3,7 @@
 [![go.mod version](https://img.shields.io/github/go-mod/go-version/woodie/expect)](https://github.com/woodie/expect)
 [![CI](https://github.com/woodie/expect/actions/workflows/ci.yml/badge.svg)](https://github.com/woodie/expect/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/woodie/expect.svg)](https://pkg.go.dev/github.com/woodie/expect)
+[![License](https://img.shields.io/github/license/woodie/expect.svg)](LICENSE)
 
 Gomega, rethought for the current state of Go.
 
