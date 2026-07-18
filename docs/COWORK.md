@@ -39,18 +39,48 @@ below.
 
 ## Design
 
-- `That(t, got)` returns an `Expectation[T]`; `.To(m)`/`.NotTo(m)` fail via
+- `Expect(t, got)` returns an `Expectation[T]`; `.To(m)`/`.NotTo(m)` fail via
   `t.Errorf` (not `Fatal` -- matches spec's own it-blocks continuing to
   report every mismatch in one run, not stopping at the first).
 - `Matcher[T]` is two methods, `Match(T) bool` and `String() string`. Adding
   a matcher is a constructor function plus a private struct; no shared base
   type or registration step.
-- No dot-imports. Every call site reads `expect.That(...).To(expect.Equal(...))`
-  in full -- consistent with the account's existing avoidance of Ginkgo/Gomega's
-  dot-import convention.
+- Dot-import is the recommended usage (see "Dot-imports: reversed" below) --
+  a deliberate, scoped exception to the account's general avoidance of
+  Ginkgo/Gomega's dot-import convention.
 - `BeNumerically` takes the same `(op string, want T)` shape Gomega uses,
   deliberately, so porting a Gomega call site is close to a search-and-replace
   rather than a redesign.
+
+## Dot-imports: reversed
+
+Originally built with the account's usual no-dot-imports stance ("Every
+call site reads `expect.That(...).To(expect.Equal(...))` in full"). Reversed
+same session, per woodie's own framing: a real test file ends up full of
+`expect.Expect(something).To(expect.Contain("whatever"))`, and if the goal
+is a matcher library people actually want to reach for instead of
+gomega/testify, the qualifier on every single line is exactly the clutter
+working against that -- "if we take a safe route with a lot of clutter,
+nobody will want to use our noisy expect package."
+
+`That` renamed to `Expect` to match -- dot-imported, `Expect(t,
+got).To(Equal(want))` reads identically to Gomega's own
+`Expect(got).To(Equal(want))`, the one difference being the explicit `t`
+(no `RegisterFailHandler`/ambient global here, matching `spec`'s own
+no-global-state stance -- see `spec`'s `docs/COWORK.md`).
+
+This is scoped to `expect` specifically, not a reversal for `spec` too:
+`spec`'s own exports (`Run`, `Before`, `After`, `G`, `S`) are common enough
+words that dot-importing it would risk real collisions with other test
+helpers in a way `expect`'s distinctive matcher names (`Equal`, `Contain`,
+`Succeed`, `BeADirectory`, ...) don't. `expect`'s own test suite
+(`expect_test.go`) now dot-imports itself too, both to dogfood the
+recommended usage and to confirm it actually compiles under dot-import, not
+just in the README's prose.
+
+Consumers not yet updated to this: `lambada`'s migrated test files still
+call `expect.That(...)` as of this writing -- see `lambada`'s own
+`docs/COWORK.md` for that follow-up.
 
 ## Not built
 

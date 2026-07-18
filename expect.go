@@ -16,14 +16,14 @@ type Matcher[T any] interface {
 	String() string
 }
 
-// Expectation wraps a value under test, obtained via That.
+// Expectation wraps a value under test, obtained via Expect.
 type Expectation[T any] struct {
 	t   testing.TB
 	got T
 }
 
-// That begins an assertion against got, e.g. expect.That(t, x).To(expect.Equal(y)).
-func That[T any](t testing.TB, got T) Expectation[T] {
+// Expect begins an assertion against got -- dot-import this package so call sites read Expect(t, x).To(Equal(y)).
+func Expect[T any](t testing.TB, got T) Expectation[T] {
 	t.Helper()
 	return Expectation[T]{t: t, got: got}
 }
