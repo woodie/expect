@@ -35,11 +35,29 @@ principle `sclevine/spec` already applies to test organization.
 
 ### Matchers
 
-`Equal`, `DeepEqual`, `BeIdenticalTo`, `Contain`, `Succeed`, `HaveOccurred`,
-`BeTrue`, `BeFalse`, `BeNumerically`, `BeAnExistingFile`, `BeADirectory`,
-`Panic`.
+Every matcher returns a `Matcher[T]`; use with `.To(...)` or `.NotTo(...)`.
 
-Each returns a `Matcher[T]`; use with `.To(...)` or `.NotTo(...)`.
+| Matcher | Signature | Matches |
+|---|---|---|
+| `Equal` | `Equal[T comparable](want T) Matcher[T]` | `got == want` |
+| `DeepEqual` | `DeepEqual[T any](want T) Matcher[T]` | `reflect.DeepEqual(got, want)` -- slices, maps, structs |
+| `BeIdenticalTo` | `BeIdenticalTo[T comparable](want T) Matcher[T]` | `got == want` -- named separately from `Equal` for pointer/interface identity checks |
+| `Contain` | `Contain(substr string) Matcher[string]` | `strings.Contains(got, substr)` |
+| `Succeed` | `Succeed() Matcher[error]` | `got == nil` |
+| `HaveOccurred` | `HaveOccurred() Matcher[error]` | `got != nil` |
+| `BeTrue` | `BeTrue() Matcher[bool]` | `got == true` |
+| `BeFalse` | `BeFalse() Matcher[bool]` | `got == false` |
+| `BeNumerically` | `BeNumerically[T cmp.Ordered](op string, want T) Matcher[T]` | `got` compared to `want` via `op` (`"=="`, `"!="`, `">"`, `">="`, `"<"`, `"<="`) |
+| `BeAnExistingFile` | `BeAnExistingFile() Matcher[string]` | `os.Stat(got)` succeeds |
+| `BeADirectory` | `BeADirectory() Matcher[string]` | `os.Stat(got)` succeeds and is a directory |
+| `Panic` | `Panic() Matcher[func()]` | calling `got` panics |
+
+`BeIdenticalTo`/`BeNumerically` sometimes need an explicit type argument,
+when `want` is an untyped constant or concrete type but `got` is an
+interface (`BeIdenticalTo[http.Handler](mux)`,
+`BeNumerically[time.Duration](">", 0)`) -- Go's generic inference doesn't
+look at how the result is used afterward, only at the arguments
+themselves.
 
 No `HaveLen`/`BeEmpty` -- Go's builtin `len()` already works generically
 over slices, maps, strings, arrays, and channels, so
@@ -49,9 +67,23 @@ of its arguments is of type T, every call site would need an explicit
 `HaveLen[[]scan](1)` type argument, exactly the ceremony `len()` already
 avoids.
 
-`BeIdenticalTo`/`BeNumerically` sometimes need an explicit type argument
-too, when `want` is an untyped constant or concrete type but `got` is an
-interface (`BeIdenticalTo[http.Handler](mux)`,
-`BeNumerically[time.Duration](">", 0)`) -- Go's generic inference doesn't
-look at how the result is used afterward, only at the arguments
-themselves.
+### Adding a matcher
+
+This list is expected to grow -- add matchers as real call sites need them,
+not speculatively (every matcher above came from an actual Ginkgo/Gomega
+call site in `gorderly` or `lambada`, not a guess at future need). The
+pattern is always the same, four lines:
+
+```go
+type fooMatcher struct{ want Bar }
+
+func (m fooMatcher) Match(got Bar) bool { return /* ... */ }
+func (m fooMatcher) String() string     { return "be foo" }
+
+func BeFoo(want Bar) Matcher[Bar] { return fooMatcher{want} }
+```
+
+No shared registry, no base type, no other file to touch. If the matcher
+is generic, add `[T any]`/`[T comparable]`/`[T cmp.Ordered]` (whichever
+constraint the `Match` body actually needs) to both the struct and the
+constructor.

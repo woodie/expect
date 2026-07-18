@@ -82,6 +82,24 @@ Consumers not yet updated to this: `lambada`'s migrated test files still
 call `expect.That(...)` as of this writing -- see `lambada`'s own
 `docs/COWORK.md` for that follow-up.
 
+## This session: a real matcher reference, and a stated growth policy
+
+The README's matcher list was a bare comma-separated name-drop -- no
+signature, no description of what each one actually matches. Replaced with
+a table (matcher, signature, matches) plus an "Adding a matcher" section
+naming the pattern explicitly (constructor function + private struct,
+`Match`/`String`, no shared registry), prompted by woodie asking for a
+"clear list of matchers" and confirming this library should stay "open to
+adding more."
+
+Stated policy, made explicit rather than left implicit: grow this list
+real-usage-first, not speculatively. Every matcher that exists today came
+from an actual Ginkgo/Gomega call site in `gorderly` or `lambada` -- not a
+guess at what Gomega has that might eventually be needed. `HaveLen`/`BeEmpty`
+already went through the speculative-then-dropped cycle once (see "Not
+built" above); the growth policy is the generalized version of that lesson,
+not a new one.
+
 ## Not built
 
 - No async/eventually-style matchers (Gomega's `Eventually`/`Consistently`).
