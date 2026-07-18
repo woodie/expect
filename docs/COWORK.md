@@ -49,6 +49,14 @@ it.
   Nothing in `gorderly` or `lambada` currently needs polling assertions.
 - No custom-matcher combinators (`And`/`Or`/`Not` wrapping other Matchers).
   Every real call site so far only needed one matcher at a time.
+- No `HaveLen`/`BeEmpty`. Drafted as `HaveLen[T any](n int) Matcher[T]`,
+  then dropped while porting `lambada`'s real `Expect(scans).To(HaveLen(1))`
+  call sites: neither argument is of type `T`, so every call would need an
+  explicit type argument Go can't infer, e.g. `expect.HaveLen[[]scan](1)` --
+  exactly the ceremony the builtin `len()` already avoids. Real lesson from
+  porting real call sites, not a hypothetical: `expect.That(t,
+  len(scans)).To(expect.Equal(1))` reads just as well with zero new
+  matcher code.
 
 ## Verification
 

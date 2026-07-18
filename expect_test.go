@@ -91,27 +91,6 @@ func TestBeTrueAndBeFalse(t *testing.T) {
 	}
 }
 
-func TestBeEmpty(t *testing.T) {
-	if !expect.BeEmpty[[]int]().Match(nil) {
-		t.Error("BeEmpty() should match a nil slice")
-	}
-	if !expect.BeEmpty[string]().Match("") {
-		t.Error("BeEmpty() should match an empty string")
-	}
-	if expect.BeEmpty[[]int]().Match([]int{1}) {
-		t.Error("BeEmpty() should not match a non-empty slice")
-	}
-}
-
-func TestHaveLen(t *testing.T) {
-	if !expect.HaveLen[[]int](2).Match([]int{1, 2}) {
-		t.Error("HaveLen(2) should match a 2-element slice")
-	}
-	if expect.HaveLen[[]int](2).Match([]int{1}) {
-		t.Error("HaveLen(2) should not match a 1-element slice")
-	}
-}
-
 func TestBeNumerically(t *testing.T) {
 	if !expect.BeNumerically(">", 0).Match(1) {
 		t.Error(`BeNumerically(">", 0) should match 1`)

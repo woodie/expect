@@ -108,38 +108,6 @@ func (falseMatcher) String() string      { return "be false" }
 // BeFalse matches got == false.
 func BeFalse() Matcher[bool] { return falseMatcher{} }
 
-func lengthOf(got any) (int, bool) {
-	v := reflect.ValueOf(got)
-	switch v.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
-		return v.Len(), true
-	default:
-		return 0, false
-	}
-}
-
-type emptyMatcher[T any] struct{}
-
-func (emptyMatcher[T]) Match(got T) bool {
-	n, ok := lengthOf(got)
-	return ok && n == 0
-}
-func (emptyMatcher[T]) String() string { return "be empty" }
-
-// BeEmpty matches a zero-length array, chan, map, slice, or string (including nil slices/maps).
-func BeEmpty[T any]() Matcher[T] { return emptyMatcher[T]{} }
-
-type lenMatcher[T any] struct{ n int }
-
-func (m lenMatcher[T]) Match(got T) bool {
-	n, ok := lengthOf(got)
-	return ok && n == m.n
-}
-func (m lenMatcher[T]) String() string { return fmt.Sprintf("have length %d", m.n) }
-
-// HaveLen matches an array, chan, map, slice, or string of exactly n.
-func HaveLen[T any](n int) Matcher[T] { return lenMatcher[T]{n} }
-
 type numericMatcher[T cmp.Ordered] struct {
 	op   string
 	want T
