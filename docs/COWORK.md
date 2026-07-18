@@ -115,6 +115,34 @@ not a new one.
   len(scans)).To(expect.Equal(1))` reads just as well with zero new
   matcher code.
 
+## expect_test.go now dogfoods spec too
+
+Rewritten from plain `Test*`/`t.Run` functions to one `spec.RunAliased`
+suite, using `describe`/`context`/`it`/`before`/`after` throughout -- not
+just `expect`'s own dot-import, per woodie's ask to "go out of our way"
+(within reason) to show off both libraries being used together, since this
+file is the most-read example of the pairing. `context` is used once, for
+`BeNumerically`'s unknown-operator case; every other matcher gets its own
+`describe`. The `BeAnExistingFile`/`BeADirectory` block deliberately uses
+`os.MkdirTemp`/`os.RemoveAll` instead of `t.TempDir()` specifically so
+`after` has a real teardown to run, rather than being included for its own
+sake with nothing to do.
+
+Added `github.com/sclevine/spec` as a real `require` (pinned to `v1.4.0`,
+matching `lambada`'s pin) plus a local `replace => ../spec`, test-only.
+This doesn't weaken `expect`'s "dependency-free" pitch: Go only resolves a
+module's test dependencies when building that module's own tests, not for
+downstream code that imports `expect` as a library -- a consumer importing
+`github.com/woodie/expect` never pulls in `spec` transitively.
+
+The `spyT` test double (a `testing.TB` mock via embed-then-override) was
+already here from the earlier CI fix; per the same ask, promoted from an
+unexplained implementation detail to a documented pattern -- one-line
+comments added at each override, plus a new README section ("Test doubles:
+mocking a Go interface") generalizing the technique beyond `testing.TB`,
+since it's broadly useful and Go has no built-in mocking library to point
+to instead.
+
 ## Verification
 
 No Go toolchain in this sandbox (same situation as `gorderly`/`lambada`) --
@@ -123,5 +151,6 @@ Needs, on your Mac:
 
 ```
 cd ~/workspace/expect
+go mod tidy   # resolves the new sclevine/spec require against ../spec
 go test -v ./...
 ```

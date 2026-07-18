@@ -119,3 +119,28 @@ No shared registry, no base type, no other file to touch. If the matcher
 is generic, add `[T any]`/`[T comparable]`/`[T cmp.Ordered]` (whichever
 constraint the `Match` body actually needs) to both the struct and the
 constructor.
+
+### Test doubles: mocking a Go interface
+
+`expect_test.go` needs to verify that a *mismatched* assertion actually
+fails -- but calling the real `t.Errorf` would fail the real test run,
+which isn't what's being tested. Go has no built-in mocking, but a plain
+struct gets you there: embed the real interface, then override only the
+methods you need to intercept.
+
+```go
+type spyT struct {
+    testing.TB // embedding satisfies the interface for every method not overridden below
+    failed bool
+}
+
+func (s *spyT) Helper() {} // no-op, so Expect's t.Helper() call doesn't touch the real *testing.T
+
+func (s *spyT) Errorf(format string, args ...interface{}) {
+    s.failed = true // record the failure instead of reporting it
+}
+```
+
+Passing a `*spyT` anywhere a `testing.TB` is expected (`Expect(spy, got).To(...)`)
+lets a test assert on `spy.failed` afterward. The same shape -- embed,
+override, inspect -- works for stubbing any interface, not just `testing.TB`.
