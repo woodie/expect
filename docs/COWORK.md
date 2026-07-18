@@ -143,14 +143,29 @@ mocking a Go interface") generalizing the technique beyond `testing.TB`,
 since it's broadly useful and Go has no built-in mocking library to point
 to instead.
 
+## v0.1.0 shipped; the local `../spec` replace was a real CI bug
+
+First pass at the `spec` replace pointed at the local sibling checkout
+(`replace github.com/sclevine/spec => ../spec`). That works on a Mac with
+both repos checked out side by side, but GitHub Actions only checks out
+`expect` itself -- CI failed with "replacement directory ../spec does not
+exist" the first time it actually ran. Separately, `go test` also failed
+locally at first: `spec`'s own `go.mod` still said `go 1.13` from 2019,
+never bumped for `Var[T]`'s generics or `it.Context()`'s dependency on
+`t.Context()` (1.24) -- both genuinely required `go 1.18`+/`1.24`+ to
+compile at all.
+
+Both fixed at the source: `spec`'s `go.mod` bumped to `go 1.24` and tagged
+as its own `v0.1.0`, then `expect`'s replace repointed at the real tag
+(`replace github.com/sclevine/spec => github.com/woodie/spec v0.1.0`)
+instead of a local path -- works identically on a Mac and in CI, since it's
+a real network fetch either way.
+
 ## Verification
 
-No Go toolchain in this sandbox (same situation as `gorderly`/`lambada`) --
-`expect.go`/`expect_test.go` written by inspection, not yet run for real.
-Needs, on your Mac:
-
-```
-cd ~/workspace/expect
-go mod tidy   # resolves the new sclevine/spec require against ../spec
-go test -v ./...
-```
+Confirmed for real, not just by inspection: `go test ./...` passes on the
+user's Mac (`ok github.com/woodie/expect 0.553s`), CI is green, and
+`v0.1.0` is tagged and pushed. `lambada` (see its own `docs/COWORK.md`)
+resolving `github.com/woodie/expect v0.1.0` as a real published module and
+passing its full suite is the actual end-to-end proof this works outside
+a local checkout.
