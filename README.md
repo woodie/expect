@@ -129,15 +129,29 @@ struct gets you there: embed the real interface, then override only the
 methods you need to intercept.
 
 ```go
+// spyT is a test double for testing.TB. The interface can't be implemented
+// from outside package testing on its own -- it carries an unexported method
+// as a deliberate Go 1 compatibility guard -- but embedding testing.TB here
+// satisfies that requirement through method promotion, without ever needing
+// a real *testing.T. The embedded field is left nil; every method spyT
+// actually calls (Helper, Errorf) is overridden below, so the nil value is
+// never reached.
 type spyT struct {
-    testing.TB // embedding satisfies the interface for every method not overridden below
+    testing.TB
     failed bool
 }
 
-func (s *spyT) Helper() {} // no-op, so Expect's t.Helper() call doesn't touch the real *testing.T
+// Helper is a no-op override. Expect calls t.Helper() on every assertion, and
+// this keeps that call from falling through to the nil embedded testing.TB.
+func (s *spyT) Helper() {}
 
+// Errorf overrides the method a real *testing.T uses to report a failure.
+// Instead of writing to a real test (which would fail the actual `go test`
+// run), it just records that a failure happened, so a test here can assert
+// that a mismatched matcher reports failure without the test process itself
+// failing.
 func (s *spyT) Errorf(format string, args ...interface{}) {
-    s.failed = true // record the failure instead of reporting it
+    s.failed = true
 }
 ```
 
