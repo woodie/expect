@@ -120,3 +120,21 @@ func TestBeAnExistingFile(t *testing.T) {
 		t.Error("BeAnExistingFile() should match an existing directory")
 	}
 }
+
+func TestBeADirectory(t *testing.T) {
+	if !expect.BeADirectory().Match(t.TempDir()) {
+		t.Error("BeADirectory() should match a real directory")
+	}
+	if expect.BeADirectory().Match("/definitely/does/not/exist") {
+		t.Error("BeADirectory() matched a nonexistent path")
+	}
+}
+
+func TestPanic(t *testing.T) {
+	if !expect.Panic().Match(func() { panic("boom") }) {
+		t.Error("Panic() should match a func that panics")
+	}
+	if expect.Panic().Match(func() {}) {
+		t.Error("Panic() should not match a func that returns normally")
+	}
+}

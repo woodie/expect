@@ -21,7 +21,8 @@ principle `sclevine/spec` already applies to test organization.
 ### Matchers
 
 `Equal`, `DeepEqual`, `BeIdenticalTo`, `Contain`, `Succeed`, `HaveOccurred`,
-`BeTrue`, `BeFalse`, `BeNumerically`, `BeAnExistingFile`.
+`BeTrue`, `BeFalse`, `BeNumerically`, `BeAnExistingFile`, `BeADirectory`,
+`Panic`.
 
 Each returns a `Matcher[T]`; use with `.To(...)` or `.NotTo(...)`.
 

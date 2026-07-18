@@ -148,3 +148,30 @@ func (existingFileMatcher) String() string { return "be an existing file" }
 
 // BeAnExistingFile matches a path that os.Stat can resolve.
 func BeAnExistingFile() Matcher[string] { return existingFileMatcher{} }
+
+type directoryMatcher struct{}
+
+func (directoryMatcher) Match(got string) bool {
+	info, err := os.Stat(got)
+	return err == nil && info.IsDir()
+}
+func (directoryMatcher) String() string { return "be a directory" }
+
+// BeADirectory matches a path that os.Stat resolves to a directory.
+func BeADirectory() Matcher[string] { return directoryMatcher{} }
+
+type panicMatcher struct{}
+
+func (panicMatcher) Match(got func()) (panicked bool) {
+	defer func() {
+		if recover() != nil {
+			panicked = true
+		}
+	}()
+	got()
+	return false
+}
+func (panicMatcher) String() string { return "panic" }
+
+// Panic matches a func() that panics when called.
+func Panic() Matcher[func()] { return panicMatcher{} }

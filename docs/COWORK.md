@@ -28,6 +28,15 @@ sibling repos": one piece of logic, needed by more than one consumer, pulled
 out rather than duplicated or left in the first repo that happened to need
 it.
 
+`cmd/lambada-mta`'s suite (`attachments_test.go`) added two more:
+`BeADirectory` (distinct from `BeAnExistingFile` -- a real directory vs.
+any resolvable path) and `Panic` (`Matcher[func()]`, calls the func and
+recovers -- the one matcher whose `T` is a function rather than a plain
+value). Every `BeNil()` call site in that file turned out to be checking an
+`error`, so those became `Succeed()`, not a new general `BeNil` matcher --
+another real-usage-first decision, same as dropping `HaveLen`/`BeEmpty`
+below.
+
 ## Design
 
 - `That(t, got)` returns an `Expectation[T]`; `.To(m)`/`.NotTo(m)` fail via
