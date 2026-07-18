@@ -5,19 +5,19 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/woodie/expect.svg)](https://pkg.go.dev/github.com/woodie/expect)
 [![License](https://img.shields.io/github/license/woodie/expect.svg)](LICENSE)
 
-Gomega, rethought for the current state of Go.
+With `expect`, you get a small, dependency-free matcher library for Go's
+standard `testing` package, built around Go 1.18+ generics.
 
-Gomega's shape (`Expect(x).To(Equal(y))`) predates generics -- every matcher
-takes `interface{}` and leans on reflection, and getting the failure back to
-the right `*testing.T` needs either a global `RegisterFailHandler(Fail)` or a
-`NewWithT(t)` wrapper. Go 1.18+ generics remove most of the reason for either:
+Before generics, a type-safe `Expect(x).To(Equal(y))`-style assertion
+wasn't really possible without leaning on `interface{}` and reflection for
+every matcher, plus a global fail handler or wrapper to route failures back
+to the right `*testing.T` -- roughly the shape libraries like Gomega
+settled on, for good reason at the time. Generics remove most of that need:
 a matcher can be statically typed to what it actually compares, and an
 assertion can just take `*testing.T` as a normal argument, no ambient state
-required. `expect` is what Gomega's own call shape looks like once you can
-assume generics -- which makes it, in one sense, a *more* conventional Go
-library than Gomega itself: no reflection where a type parameter already
-does the job, no package-level registration step, just `testing.TB` in and
-`t.Errorf` out.
+required. That's the simpler shape `expect` takes, now that Go has caught
+up -- no reflection where a type parameter already does the job, no
+package-level registration step, just `testing.TB` in and `t.Errorf` out.
 
 ```go
 import . "github.com/woodie/expect"
@@ -33,10 +33,11 @@ Dot-import is the intended, recommended usage -- a file full of
 package exists to cut. `Expect`/`Equal`/`Contain`/etc. are distinctive
 enough, and few enough, that collisions with anything else in a typical
 test file are unlikely. (This is a deliberate exception to this account's
-general dot-import avoidance -- see `docs/COWORK.md` for the reasoning.
-`sclevine/spec`/`~/workspace/spec` itself stays un-dot-imported; its own
-exports -- `Run`, `Before`, `After`, `G`, `S` -- are generic enough that
-dot-importing it would be a real collision risk in a way `expect`'s aren't.)
+general dot-import avoidance -- see `docs/COWORK.md` for the reasoning,
+which doesn't extend to `sclevine/spec`/`~/workspace/spec` itself: it stays
+un-dot-imported, since its own exports -- `Run`, `Before`, `After`, `G`,
+`S` -- are generic enough that dot-importing it would be a real collision
+risk in a way `expect`'s aren't.)
 
 If you'd rather not dot-import, every name still works qualified:
 `expect.Expect(t, x).To(expect.Equal(y))`.
