@@ -22,10 +22,14 @@ package-level registration step, just `testing.TB` in and `t.Errorf` out.
 ```go
 import . "github.com/woodie/expect"
 
-Expect(t, pkg.ImportPath).To(Equal("example.com/math"))
+Expect(t, resp.StatusCode).To(Equal(200))
+Expect(t, resp.StatusCode).NotTo(Equal(404))
+Expect(t, tags).To(DeepEqual([]string{"go", "testing"}))
+Expect(t, body).To(Contain("Available Scans"))
 Expect(t, err).To(Succeed())
-Expect(t, len(scans)).To(Equal(1))
-Expect(t, rec.Body.String()).To(Contain("Available Scans"))
+Expect(t, elapsed).To(BeNumerically[time.Duration]("<", time.Second))
+Expect(t, srv.Handler).To(BeIdenticalTo[http.Handler](mux))
+Expect(t, func() { mustParse("bad") }).To(Panic())
 ```
 
 Dot-import is the intended, recommended usage -- a file full of
