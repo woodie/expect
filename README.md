@@ -9,6 +9,13 @@
 With `expect`, you get a small, dependency-free matcher library for Go's
 standard `testing` package, built around Go 1.18+ generics.
 
+This isn't a new test framework -- there's no runner to adopt, no global
+registration, no config file. Every assertion is a plain function call
+against whatever `*testing.T`/`*testing.B`/`testing.TB` your test already
+has, so it drops straight into `go test`, table-driven tests, `spec`
+suites, or anything else built on stdlib `testing`, with nothing new to
+install and nothing to wire up beyond the import.
+
 Before generics, a type-safe `Expect(x).To(Equal(y))`-style assertion
 wasn't really possible without leaning on `interface{}` and reflection for
 every matcher, plus a global fail handler or wrapper to route failures back
@@ -72,6 +79,16 @@ nothing is traded away for the lowercase spelling. Every call site then
 reads `expect(x, t).To(Equal(y))`, blending in with `describe`/`context`/
 `it`/`before`/`after` instead of standing out as the one capitalized word
 in the block.
+
+`describe`/`context`/`it`/`before`/`after` get to be lowercase for a
+different reason, worth not conflating with the above: they're just
+parameter names in your own suite function's signature (see
+[`spec`](https://github.com/woodie/spec)'s README), never crossing a
+package boundary the way a called function like `Expect` does, so no
+alias trick is needed there at all. See
+[`gorderly`](https://github.com/woodie/gorderly)'s README for `spec`,
+`expect`, and this alias all used together in one real suite, piped
+through a real RSpec-style renderer.
 
 ### Where this differs from Gomega
 
