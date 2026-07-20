@@ -78,9 +78,9 @@ helpers in a way `expect`'s distinctive matcher names (`Equal`, `Contain`,
 recommended usage and to confirm it actually compiles under dot-import, not
 just in the README's prose.
 
-Consumers not yet updated to this: `lambada`'s migrated test files still
-call `expect.That(...)` as of this writing -- see `lambada`'s own
-`docs/COWORK.md` for that follow-up.
+Update: resolved long since -- `lambada`'s test files call `Expect(...)`
+(now `Expect(got, t)` as of `v0.2.0`, see below), not `That`. `humane` and
+`gorderly` have since adopted the same dot-import convention too.
 
 ## This session: a real matcher reference, and a stated growth policy
 
@@ -213,9 +213,10 @@ ceiling. `expect_test.go` now declares and uses this alias itself, both to
 dogfood the recommended shape and to confirm it actually compiles under
 dot-import. This is a breaking change to `Expect`'s argument order --
 `lambada`'s five test files (see its own `docs/COWORK.md`) were updated in
-the same session, but this hasn't been tagged/published yet; that's a
-separate, deliberate step (see root `docs/COWORK.md`'s "Shared libraries
-across sibling repos").
+the same session. Tagged and published as `v0.2.0`, confirmed against
+`lambada`'s real suite (55 specs) on the user's own Mac; `humane` (45
+specs) and `gorderly` (29 specs) have since bumped their own pins and
+confirmed clean too -- see each repo's own `docs/COWORK.md`.
 
 ## Same session: the `spec` suite body moved out of the inline closure
 
