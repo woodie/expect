@@ -169,3 +169,80 @@ user's Mac (`ok github.com/woodie/expect 0.553s`), CI is green, and
 resolving `github.com/woodie/expect v0.1.0` as a real published module and
 passing its full suite is the actual end-to-end proof this works outside
 a local checkout.
+
+## This session: `Expect(got, t)`, and a lowercase local-alias convention
+
+Prompted by looking at `lambada`'s `cmd/lambada-web/main_test.go` once its
+`spec` blocks were already lowercase `describe`/`context`/`it`/`before`/
+`after` -- `Expect(t, got)` put the argument that reads like `self` first on
+the line, ahead of the actual subject under test, which read as visually
+"in your face" against the surrounding lowercase DSL. Explored in
+`github.com/woodie/expect` issue #1 ("Consider `t.Expect()`"); worth
+recording why neither of its two proposed paths survived contact with the
+real file, and what shipped instead.
+
+`t.Expect(got)` via wrapping `testing.T` in a own type doesn't just read
+oddly -- it doesn't compile for a file like `main_test.go`, which asserts
+`int`, `string`, `error`, and `bool` all under the same `t` in one
+`spec.RunAliased` body. Go methods can't introduce their own type
+parameters (only free functions can be generic), so a `T`-typed wrapper
+struct can only ever fix one `T` for its lifetime -- it can't flex across
+mixed-type assertions the way the current free `Expect[T any](...)`
+does. `spec.Run`/`spec.RunAliased` also hardcode `*testing.T` in their own
+signatures (`~/workspace/spec`'s `spec.go`/`aliases.go`) -- issue #1's other
+path, a generic `spec.Run[T]`, doesn't exist and would ripple into every
+other `spec` consumer, not just `expect`.
+
+What actually shipped: `Expect[T any](t testing.TB, got T)` flipped to
+`Expect[T any](got T, t testing.TB)` -- subject first, `t` a quiet trailing
+detail instead of the lead argument -- plus a documented convention (see
+README's "Lowercase call sites") for consumers to declare their own local,
+one-line generic alias:
+
+```go
+func expect[T any](got T, t testing.TB) Expectation[T] { return Expect(got, t) }
+```
+
+This isn't a workaround, it's the actual unlock: Go's capitalize-to-export
+rule only applies across the package boundary, so a real (non-closure)
+generic function declared inside the *consuming* test package can be
+lowercase with zero loss of compile-time type inference -- unlike a
+closure, which can't declare its own type parameters at all, and unlike
+the wrapped-`testing.T` approach above, which hits the one-`T`-per-value
+ceiling. `expect_test.go` now declares and uses this alias itself, both to
+dogfood the recommended shape and to confirm it actually compiles under
+dot-import. This is a breaking change to `Expect`'s argument order --
+`lambada`'s five test files (see its own `docs/COWORK.md`) were updated in
+the same session, but this hasn't been tagged/published yet; that's a
+separate, deliberate step (see root `docs/COWORK.md`'s "Shared libraries
+across sibling repos").
+
+## Same session: the `spec` suite body moved out of the inline closure
+
+A follow-up to the `t` discussion above, this time about
+`spec.RunAliased`/`spec.Run`'s own third argument -- the function itself,
+not what's inside it. `TestExpect` used to read `spec.RunAliased(t,
+"expect", func(t *testing.T, describe, context spec.Describe, it spec.S,
+before, after func(func())) {...})`, the whole suite body inline inside
+that one call. Go's function types are structural, so nothing about
+`spec`'s own API needed to change to pull that closure out into a named,
+top-level function with a matching signature:
+
+```go
+func TestExpect(t *testing.T) {
+	spec.RunAliased(t, "expect", expectSuite)
+}
+
+func expectSuite(t *testing.T, describe, context spec.Describe, it spec.S, before, after func(func())) {
+	describe("To/NotTo/ToNot", func() { ... })
+	...
+}
+```
+
+`TestExpect` is now one line; `expectSuite` holds the actual suite,
+declared right below it in the same file. The parameter list itself still
+has to be written out somewhere -- this doesn't shrink it, it just moves
+it from an inline closure header to a named function's header, which reads
+a little cleaner and keeps the `Test*` entry point trivial to scan. Not
+done to any other file yet -- see `lambada`'s own `docs/COWORK.md` for
+where this went next.

@@ -22,8 +22,8 @@ type Expectation[T any] struct {
 	got T
 }
 
-// Expect begins an assertion against got -- dot-import this package so call sites read Expect(t, x).To(Equal(y)).
-func Expect[T any](t testing.TB, got T) Expectation[T] {
+// Expect begins an assertion against got -- dot-import this package so call sites read Expect(x, t).To(Equal(y)).
+func Expect[T any](got T, t testing.TB) Expectation[T] {
 	t.Helper()
 	return Expectation[T]{t: t, got: got}
 }

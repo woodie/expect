@@ -23,14 +23,14 @@ package-level registration step, just `testing.TB` in and `t.Errorf` out.
 ```go
 import . "github.com/woodie/expect"
 
-Expect(t, resp.StatusCode).To(Equal(200))
-Expect(t, resp.StatusCode).NotTo(Equal(404))
-Expect(t, tags).To(DeepEqual([]string{"go", "testing"}))
-Expect(t, body).To(Contain("Available Scans"))
-Expect(t, err).To(Succeed())
-Expect(t, elapsed).To(BeNumerically[time.Duration]("<", time.Second))
-Expect(t, srv.Handler).To(BeIdenticalTo[http.Handler](mux))
-Expect(t, func() { mustParse("bad") }).To(Panic())
+Expect(resp.StatusCode, t).To(Equal(200))
+Expect(resp.StatusCode, t).NotTo(Equal(404))
+Expect(tags, t).To(DeepEqual([]string{"go", "testing"}))
+Expect(body, t).To(Contain("Available Scans"))
+Expect(err, t).To(Succeed())
+Expect(elapsed, t).To(BeNumerically[time.Duration]("<", time.Second))
+Expect(srv.Handler, t).To(BeIdenticalTo[http.Handler](mux))
+Expect(func() { mustParse("bad") }, t).To(Panic())
 ```
 
 Dot-import is the intended, recommended usage -- a file full of
@@ -45,7 +45,33 @@ un-dot-imported, since its own exports -- `Run`, `Before`, `After`, `G`,
 risk in a way `expect`'s aren't.)
 
 If you'd rather not dot-import, every name still works qualified:
-`expect.Expect(t, x).To(expect.Equal(y))`.
+`expect.Expect(x, t).To(expect.Equal(y))`.
+
+`got` comes first and `t` second, deliberately: in a `spec`/Ginkgo-style
+file where `describe`/`context`/`it`/`before`/`after` already read as
+lowercase structural keywords, `Expect(t, x)` put the one thing that looks
+like `self` first on the line, ahead of the actual subject under test.
+`Expect(x, t)` puts the subject first, `t` becomes a quiet trailing detail.
+
+### Lowercase call sites
+
+`Expect` has to stay capitalized -- Go only lets a dot-imported name be used
+unqualified if it's exported, and exported means capitalized. But nothing
+stops the *consuming* test package from declaring its own lowercase
+pass-through, since that capitalization rule only applies across the
+package boundary:
+
+```go
+func expect[T any](got T, t testing.TB) Expectation[T] { return Expect(got, t) }
+```
+
+One line, written once per test package (see `expect_test.go`'s own copy,
+which every `it` in this repo's suite calls). It's a real generic function
+declaration, not a closure, so it keeps full compile-time type inference --
+nothing is traded away for the lowercase spelling. Every call site then
+reads `expect(x, t).To(Equal(y))`, blending in with `describe`/`context`/
+`it`/`before`/`after` instead of standing out as the one capitalized word
+in the block.
 
 ### Where this differs from Gomega
 
@@ -59,8 +85,8 @@ rather than papered over:
   `comparable`-constrained `Equal` can't also do deep comparison -- `DeepEqual`
   exists for that case. Permanent, not a gap.
 - **`Contain`, not `ContainSubstring`.** A deliberate shortening, not a miss.
-- **No `HaveLen`/`BeEmpty`.** `Expect(x).To(HaveLen(n))` becomes `Expect(t,
-  len(x)).To(Equal(n))` -- Go's builtin `len()` already does this generically,
+- **No `HaveLen`/`BeEmpty`.** `Expect(x).To(HaveLen(n))` becomes `Expect(
+  len(x), t).To(Equal(n))` -- Go's builtin `len()` already does this generically,
   so a wrapping matcher would only add ceremony (see "Matchers" below for why
   one was drafted and dropped).
 - **Occasional explicit `[T]`.** `BeIdenticalTo[http.Handler](mux)`,
@@ -94,7 +120,7 @@ Every matcher returns a `Matcher[T]`; use with `.To(...)` or `.NotTo(...)`
 
 No `HaveLen`/`BeEmpty` -- Go's builtin `len()` already works generically
 over slices, maps, strings, arrays, and channels, so
-`Expect(t, len(x)).To(Equal(n))` needs no new matcher at all. A
+`Expect(len(x), t).To(Equal(n))` needs no new matcher at all. A
 `HaveLen[T any](n int) Matcher[T]` was drafted and dropped: since neither
 of its arguments is of type T, every call site would need an explicit
 `HaveLen[[]scan](1)` type argument, exactly the ceremony `len()` already
@@ -147,7 +173,7 @@ func (s *spyT) Errorf(format string, args ...interface{}) {
 
 `Helper` is a no-op so it doesn't fall through to the nil embedded value;
 `Errorf` records the failure instead of reporting it. Pass a `*spyT`
-anywhere a `testing.TB` is expected (`Expect(spy, got).To(...)`) and a
+anywhere a `testing.TB` is expected (`Expect(got, spy).To(...)`) and a
 test can assert on `spy.failed` afterward. The same shape -- embed,
 override, inspect -- works for stubbing any interface, not just
 `testing.TB`. See `expect_test.go` itself for the fuller, more heavily
