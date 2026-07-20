@@ -164,6 +164,56 @@ is generic, add `[T any]`/`[T comparable]`/`[T cmp.Ordered]` (whichever
 constraint the `Match` body actually needs) to both the struct and the
 constructor.
 
+### Using a subject
+
+Go has no `subject`/`let` keyword, but the pattern translates directly
+once you have `spec`'s `before` (re-run fresh before every `it`, parent
+before child): declare whatever `subject` depends on as plain local
+variables in the enclosing `describe`, define `subject` itself as a
+closure over them, and let a `before` at whichever nesting level actually
+needs to change one set it.
+
+```go
+describe("DistanceInTime", func() {
+	var at *time.Time
+	var base time.Time
+	var opts humane.TimeOptions
+	subject := func() string { return humane.DistanceInTime(at, base, opts) }
+
+	before(func() {
+		base = time.Date(2026, 7, 8, 12, 0, 0, 0, time.UTC)
+		opts = humane.TimeOptions{}
+	})
+
+	context("just now", func() {
+		before(func() { at = ptr(base) })
+
+		it("displays less than a minute ago", func() {
+			expect(subject(), t).To(Equal("less than a minute ago"))
+		})
+	})
+
+	context("45 seconds ago", func() {
+		before(func() { at = ptr(base.Add(-45 * time.Second)) })
+
+		it("rounds up to 1 minute ago", func() {
+			expect(subject(), t).To(Equal("1 minute ago"))
+		})
+	})
+})
+```
+
+`subject` is just a closure -- the same mechanism `before`/`after`
+themselves are built on -- so it doesn't run until called, and
+`subject()` inside each `it` reads whatever the `before` chain most
+recently set. See [`humane`](https://github.com/woodie/humane)'s own
+`size_test.go`/`time_test.go` for this pattern used across a real,
+45-spec suite, covering both shapes that come up in practice: a subject
+closing over a single varying input (`size_test.go`'s `subject := func()
+string { return humane.HumanSize(bytes) }`), and one closing over several
+independently-overridable inputs (`time_test.go`'s version above, where
+different `context`s override `at`, `opts`, or both).
+
 ### Test doubles: mocking a Go interface
 
 `expect_test.go` needs to verify that a *mismatched* assertion actually
