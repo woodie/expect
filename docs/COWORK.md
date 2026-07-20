@@ -247,3 +247,26 @@ it from an inline closure header to a named function's header, which reads
 a little cleaner and keeps the `Test*` entry point trivial to scan. Not
 done to any other file yet -- see `lambada`'s own `docs/COWORK.md` for
 where this went next.
+
+## Reversal: moved off the `woodie/spec` fork, back to plain upstream
+
+Superseding the section above: `expectSuite` as a named top-level function
+was itself walked back once `gorderly` and `lambada` both confirmed the
+underlying fork wasn't pulling its weight. `spec.RunAliased`'s six-parameter
+signature (`describe, context spec.Describe, it spec.S, before, after
+func(func())`) exists to hand `before`/`after`/`context` in as bound
+parameters -- but the one-line alternative, `context, before, after :=
+describe, it.Before, it.After` written by hand as the first line inside a
+plain `spec.Run` closure, needs nothing from the fork and reads more
+plainly than either the six-parameter signature or a separate named suite
+function does. `go.mod`'s `replace github.com/sclevine/spec =>
+github.com/woodie/spec v0.1.0` is dropped; `expect_test.go` now calls
+`spec.Run(t, "expect", func(t *testing.T, describe spec.G, it spec.S)
+{...})` directly, with the destructuring line as the closure's first line
+and a blank line under it before the real specs start (`spyT` and
+`TestExpect` stay in `expect_test.go`; the lowercase `expect` alias moved
+to a new `config_test.go`, matching the shape `gorderly` and `lambada`
+both settled on -- see either repo's own `docs/COWORK.md`, "Reversal:
+moved off the `woodie/spec` fork" section, for the fuller why). README
+updated to point at `config_test.go` instead of `expect_test.go` for the
+alias, and to drop its `github.com/woodie/spec` cross-reference.

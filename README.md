@@ -44,12 +44,13 @@ Dot-import is the intended, recommended usage -- a file full of
 `expect.Expect(...).To(expect.Contain(...))` is exactly the clutter this
 package exists to cut. `Expect`/`Equal`/`Contain`/etc. are distinctive
 enough, and few enough, that collisions with anything else in a typical
-test file are unlikely. (This is a deliberate exception to this account's
-general dot-import avoidance -- see `docs/COWORK.md` for the reasoning,
-which doesn't extend to `sclevine/spec`/`~/workspace/spec` itself: it stays
-un-dot-imported, since its own exports -- `Run`, `Before`, `After`, `G`,
-`S` -- are generic enough that dot-importing it would be a real collision
-risk in a way `expect`'s aren't.)
+test file are unlikely. (This is a deliberate exception to the usual advice
+against dot-imports: it's made here because the qualifier on every line
+works directly against the goal of a matcher library people want to reach
+for. It doesn't extend to `sclevine/spec` itself, which stays
+un-dot-imported -- its own exports (`Run`, `Before`, `After`, `G`, `S`)
+are generic enough that dot-importing it would be a real collision risk
+in a way `expect`'s aren't.)
 
 If you'd rather not dot-import, every name still works qualified:
 `expect.Expect(x, t).To(expect.Equal(y))`.
@@ -72,7 +73,7 @@ package boundary:
 func expect[T any](got T, t testing.TB) Expectation[T] { return Expect(got, t) }
 ```
 
-One line, written once per test package (see `expect_test.go`'s own copy,
+One line, written once per test package (see `config_test.go`'s own copy,
 which every `it` in this repo's suite calls). It's a real generic function
 declaration, not a closure, so it keeps full compile-time type inference --
 nothing is traded away for the lowercase spelling. Every call site then
@@ -83,7 +84,7 @@ in the block.
 `describe`/`context`/`it`/`before`/`after` get to be lowercase for a
 different reason, worth not conflating with the above: they're just
 parameter names in your own suite function's signature (see
-[`spec`](https://github.com/woodie/spec)'s README), never crossing a
+[`sclevine/spec`](https://github.com/sclevine/spec)'s README), never crossing a
 package boundary the way a called function like `Expect` does, so no
 alias trick is needed there at all. See
 [`gorderly`](https://github.com/woodie/gorderly)'s README for `spec`,
