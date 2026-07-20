@@ -6,8 +6,11 @@ Cross-project conventions are in `~/workspace/woodie/docs/COWORK.md`.
 
 A generics-based matcher library, born out of migrating `gorderly`'s own
 noisy `if x != y { t.Errorf(...) }` specs and `lambada`'s real Ginkgo/Gomega
-suite onto `sclevine/spec` (see `~/workspace/spec`'s own `docs/COWORK.md` and
-`~/workspace/gorderly`'s, "Test-writing convention" section).
+suite onto `sclevine/spec` (see `~/workspace/gorderly`'s own
+`docs/COWORK.md`, "Test-writing convention" section; `spec`'s own
+`docs/COWORK.md` no longer exists -- its fork-only `docs/` folder was
+wiped when `master` reset to plain `upstream/master`, see "Reversal"
+below).
 
 ## How this came to exist
 
