@@ -38,7 +38,7 @@ func TestExpect(t *testing.T) {
 	spec.Run(t, "expect", func(t *testing.T, describe spec.G, it spec.S) {
 		context, before, after := describe, it.Before, it.After
 
-		describe("To/NotTo/ToNot", func() {
+		describe("To ̸NotTo ̸ToNot", func() {
 			var pass, fail *spyT
 
 			before(func() {
