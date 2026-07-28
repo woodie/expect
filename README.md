@@ -8,16 +8,39 @@
 
 A small, dependency-free matcher library for Go's standard `testing` package. Gomega-style 
 assertions, built on Go generics, with no test runner or framework to adopt. Add a one-line 
-[lowercase alias](https://github.com/woodie/expect/blob/main/config_test.go#L10)
-so call sites read lowercase as in this example using
+lowercase alias (see "Setup" below) so call sites read lowercase, as in this example using
 [`spec`](https://github.com/sclevine/spec).
 
 ```go
 func TestCalculator(t *testing.T) {
     spec.Run(t, "Calculator", func(t *testing.T, describe spec.G, it spec.S) {
-        describe("adds two numbers", func() {
-            it("returns the sum of two numbers", func() {
-                expect(NewCalculator().Add(2, 3), t).To(Equal(5))
+        context, before := describe, it.Before
+
+        var calculator *Calculator
+        before(func() { calculator = NewCalculator() })
+
+        context("with 5 entered", func() {
+            before(func() { calculator.Enter(5) })
+
+            context("#DivideBy", func() {
+                var divisor int
+                subject := func() int { return calculator.DivideBy(divisor) }
+
+                context("when the divisor is 1", func() {
+                    before(func() { divisor = 1 })
+
+                    it("has no remainder", func() {
+                        expect(subject(), t).To(Equal(0))
+                    })
+                })
+
+                context("when the divisor is 3", func() {
+                    before(func() { divisor = 3 })
+
+                    it("has a remainder of 2", func() {
+                        expect(subject(), t).To(Equal(2))
+                    })
+                })
             })
         })
     })
@@ -36,6 +59,31 @@ import.
 go get github.com/woodie/expect
 ```
 Then dot-import the package into your test files.
+
+## Setup
+
+Dot-import `expect` and declare a local lowercase alias once per test
+package -- a real (non-closure) generic function declared inside your own
+package can be lowercase with zero loss of type inference, unlike a
+dot-imported name, which has to stay capitalized:
+
+```go
+package calculator_test
+
+import (
+    "testing"
+
+    "github.com/sclevine/spec"
+    . "github.com/woodie/expect"
+)
+
+func expect[T any](got T, t testing.TB) Expectation[T] { return Expect(got, t) } // declared once per package
+```
+
+Every `it` in the package can then call `expect(...)` lowercase, as in the
+example above. See
+[`config_test.go`](https://github.com/woodie/expect/blob/main/config_test.go)
+for the real version.
 
 ## Matchers
 
