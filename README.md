@@ -22,7 +22,7 @@ func TestCalculator(t *testing.T) {
         context("with 5 entered", func() {
             before(func() { calculator.Enter(5) })
 
-            context("#DivideBy", func() {
+            describe("#DivideBy", func() {
                 var divisor int
                 subject := func() int { return calculator.DivideBy(divisor) }
 
