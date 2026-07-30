@@ -11,6 +11,25 @@ assertions, built on Go generics, with no test runner or framework to adopt. Add
 lowercase alias (see "Setup" below) so call sites read lowercase, as in this example using
 [`spec`](https://github.com/sclevine/spec).
 
+This project isn't meant to compete with Ginkgo/Gomega -- a full-featured testing framework
+and matcher ecosystem -- it's meant as a lighter-weight on-ramp for developers adopting
+BDD-style testing. Paired with [`spec`](https://github.com/sclevine/spec)'s
+`describe`/`context`/`it` structure it's a small first step into that style, and used entirely
+on its own -- in a plain `go test` file, no `describe`/`context`/`it` required -- it also suits
+anyone who just wants Gomega's `expect()` syntax.
+
+Gomega itself works standalone too (no Ginkgo required), but still asks for a per-test wrapper;
+`expect` skips that step and threads `t` straight into the call:
+
+```go
+// Gomega, standalone -- wrap *testing.T once, assert off the wrapper.
+g := NewWithT(t)
+g.Expect(f.HasCow()).To(BeTrue())
+
+// expect -- no wrapper, t goes straight into the call.
+Expect(f.HasCow(), t).To(BeTrue())
+```
+
 ```go
 func TestCalculator(t *testing.T) {
     spec.Run(t, "Calculator", func(t *testing.T, describe spec.G, it spec.S) {
