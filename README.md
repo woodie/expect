@@ -11,12 +11,8 @@ assertions, built on Go generics, with no test runner or framework to adopt. Add
 lowercase alias (see "Setup" below) so call sites read lowercase, as in this example using
 [`spec`](https://github.com/sclevine/spec).
 
-This project isn't meant to compete with Ginkgo/Gomega -- a full-featured testing framework
-and matcher ecosystem -- it's meant as a lighter-weight on-ramp for developers adopting
-BDD-style testing. Paired with [`spec`](https://github.com/sclevine/spec)'s
-`describe`/`context`/`it` structure it's a small first step into that style, and used entirely
-on its own -- in a plain `go test` file, no `describe`/`context`/`it` required -- it also suits
-anyone who just wants Gomega's `expect()` syntax.
+ Paired with [`spec`](https://github.com/sclevine/spec)'s
+`describe`/`context`/`it` structure it's a small first step into that style.
 
 ```go
 func TestCalculator(t *testing.T) {
@@ -145,9 +141,8 @@ call sites, with two real differences:
 
 Everything else -- `To`/`NotTo`/`ToNot`, matcher names, overall call
 shape -- matches Gomega's own vocabulary, so porting a Gomega call site is
-close to search-and-replace.
-
-Gomega itself works standalone too (no Ginkgo required), but still asks for a per-test wrapper;
+close to search-and-replace.  Gomega itself works standalone too
+(no Ginkgo required), but still asks for a per-test wrapper;
 `expect` skips that step and threads `t` straight into the call:
 
 ```go
