@@ -11,9 +11,6 @@ assertions, built on Go generics, with no test runner or framework to adopt. Add
 lowercase alias (see "Setup" below) so call sites read lowercase, as in this example using
 [`spec`](https://github.com/sclevine/spec).
 
- Paired with [`spec`](https://github.com/sclevine/spec)'s
-`describe`/`context`/`it` structure it's a small first step into that style.
-
 ```go
 func TestCalculator(t *testing.T) {
     spec.Run(t, "Calculator", func(t *testing.T, describe spec.G, it spec.S) {
