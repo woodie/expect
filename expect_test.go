@@ -188,7 +188,7 @@ func TestExpect(t *testing.T) {
 
 			// after runs explicit teardown, since dir here isn't managed by t.TempDir().
 			after(func() {
-				os.RemoveAll(dir)
+				_ = os.RemoveAll(dir)
 			})
 
 			it("BeAnExistingFile matches a real path", func() {
