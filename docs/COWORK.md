@@ -66,11 +66,12 @@ gomega/testify, the qualifier on every single line is exactly the clutter
 working against that -- "if we take a safe route with a lot of clutter,
 nobody will want to use our noisy expect package."
 
-`That` renamed to `Expect` to match -- dot-imported, `Expect(t,
-got).To(Equal(want))` reads identically to Gomega's own
-`Expect(got).To(Equal(want))`, the one difference being the explicit `t`
-(no `RegisterFailHandler`/ambient global here, matching `spec`'s own
-no-global-state stance -- see `spec`'s `docs/COWORK.md`).
+`That` renamed to `Expect` so porting a Gomega call site takes as little
+effort as possible -- dot-imported, `Expect(t, got).To(Equal(want))` reads
+the same way a Gomega call site does, `Expect(got).To(Equal(want))`, aside
+from the explicit `t` (no `RegisterFailHandler`/ambient global here,
+matching `spec`'s own no-global-state stance -- see `spec`'s
+`docs/COWORK.md`).
 
 This is scoped to `expect` specifically, not a reversal for `spec` too:
 `spec`'s own exports (`Run`, `Before`, `After`, `G`, `S`) are common enough
@@ -328,3 +329,35 @@ installed -- same split every other repo's Makefile uses.
 README's new "Development" section documents the four targets plus a
 fallback (`go test -v ./...` / `go test ./...`) for a reader without
 `gorderly` on `PATH`, matching `humane`'s README precedent.
+
+## Matcher order now follows Gomega's own docs, not addition history
+
+The README's matcher table (and, following it, `expect.go`'s function
+order and `expect_test.go`'s `describe` order) used to read in the order
+each matcher was added -- real-usage-first, chronological, no relation to
+how Gomega documents its own matchers. Woodie's ask: line the list up with
+Gomega's own category order (`Asserting Equivalence` -> `Presence` ->
+`Truthiness` -> `Errors` -> `Channels` -> `Files` -> `Strings` ->
+`Collections` -> `Structs` -> `Numbers and Times` -> `Values` -> `HTTP` ->
+`Panics` -> `Composing`, per <https://onsi.github.io/gomega/#provided-matchers>)
+so a reader comparing the two lists side by side isn't tripped up by
+`expect`'s own history showing through.
+
+Filtered down to just the matchers `expect` actually has, that order is:
+`Equal`, `DeepEqual` (no direct Gomega equivalent -- kept next to `Equal`
+since together they cover what Gomega's single reflection-based `Equal`
+does), `BeIdenticalTo`, `BeTrue`, `BeFalse`, `HaveOccurred`, `Succeed`,
+`BeAnExistingFile`, `BeADirectory`, `Contain`, `ContainSubstring`,
+`BeEmpty`, `HaveLen`, `BeNumerically`, `Panic`. Two real reorderings
+against the old chronological list: `HaveOccurred`/`Succeed` were swapped
+(Gomega documents `HaveOccurred` first), and `BeTrue`/`BeFalse` moved from
+after the Errors matchers to before them (Gomega's `Asserting Truthiness`
+section precedes `Asserting on Errors`).
+
+All three surfaces -- README table, `expect.go`'s matcher definitions, and
+`expect_test.go`'s `describe` blocks -- were reordered together, a pure
+code-motion pass with no behavior change, so a reader jumping between any
+two of them sees the same sequence. Along the way, noticed `BeIdenticalTo`
+has no test coverage in `expect_test.go` at all -- pre-existing gap, not
+introduced by this reorder, left as-is since fixing it wasn't part of the
+ask.

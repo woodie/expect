@@ -95,18 +95,18 @@ Every matcher returns a `Matcher[T]`; use with `.To(...)` or `.NotTo(...)`
 | `Equal` | `Equal[T comparable](want T) Matcher[T]` | `got == want` |
 | `DeepEqual` | `DeepEqual[T any](want T) Matcher[T]` | `reflect.DeepEqual(got, want)` -- slices, maps, structs |
 | `BeIdenticalTo` | `BeIdenticalTo[T comparable](want T) Matcher[T]` | `got == want` -- named separately from `Equal` for pointer/interface identity checks |
-| `Contain` | `Contain(substr string) Matcher[string]` | `strings.Contains(got, substr)` |
-| `ContainSubstring` | `ContainSubstring(substr string) Matcher[string]` | alias for `Contain` |
-| `Succeed` | `Succeed() Matcher[error]` | `got == nil` |
-| `HaveOccurred` | `HaveOccurred() Matcher[error]` | `got != nil` |
 | `BeTrue` | `BeTrue() Matcher[bool]` | `got == true` |
 | `BeFalse` | `BeFalse() Matcher[bool]` | `got == false` |
-| `BeNumerically` | `BeNumerically[T cmp.Ordered](op string, want T) Matcher[T]` | `got` compared to `want` via `op` (`"=="`, `"!="`, `">"`, `">="`, `"<"`, `"<="`) |
+| `HaveOccurred` | `HaveOccurred() Matcher[error]` | `got != nil` |
+| `Succeed` | `Succeed() Matcher[error]` | `got == nil` |
 | `BeAnExistingFile` | `BeAnExistingFile() Matcher[string]` | `os.Stat(got)` succeeds |
 | `BeADirectory` | `BeADirectory() Matcher[string]` | `os.Stat(got)` succeeds and is a directory |
-| `Panic` | `Panic() Matcher[func()]` | calling `got` panics |
-| `HaveLen` | `HaveLen[T any](n int) Matcher[T]` | `got`'s length (slice, array, map, channel, or string) equals `n` |
+| `Contain` | `Contain(substr string) Matcher[string]` | `strings.Contains(got, substr)` |
+| `ContainSubstring` | `ContainSubstring(substr string) Matcher[string]` | alias for `Contain` |
 | `BeEmpty` | `BeEmpty[T any]() Matcher[T]` | `got`'s length is zero |
+| `HaveLen` | `HaveLen[T any](n int) Matcher[T]` | `got`'s length (slice, array, map, channel, or string) equals `n` |
+| `BeNumerically` | `BeNumerically[T cmp.Ordered](op string, want T) Matcher[T]` | `got` compared to `want` via `op` (`"=="`, `"!="`, `">"`, `">="`, `"<"`, `"<="`) |
+| `Panic` | `Panic() Matcher[func()]` | calling `got` panics |
 
 This list grows from real call sites, not speculatively -- most matchers
 above came from an actual Gomega call site in `gorderly` or `lambada`;

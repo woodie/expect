@@ -74,33 +74,6 @@ func (m identicalMatcher[T]) String() string   { return fmt.Sprintf("be identica
 // BeIdenticalTo matches got == want -- named separately from Equal for pointer/interface identity checks.
 func BeIdenticalTo[T comparable](want T) Matcher[T] { return identicalMatcher[T]{want} }
 
-type containMatcher struct{ substr string }
-
-func (m containMatcher) Match(got string) bool { return strings.Contains(got, m.substr) }
-func (m containMatcher) String() string        { return fmt.Sprintf("contain %q", m.substr) }
-
-// Contain matches strings.Contains(got, substr).
-func Contain(substr string) Matcher[string] { return containMatcher{substr} }
-
-// ContainSubstring is an alias for Contain, matching Gomega's own name.
-func ContainSubstring(substr string) Matcher[string] { return Contain(substr) }
-
-type succeedMatcher struct{}
-
-func (succeedMatcher) Match(got error) bool { return got == nil }
-func (succeedMatcher) String() string       { return "succeed (nil error)" }
-
-// Succeed matches a nil error.
-func Succeed() Matcher[error] { return succeedMatcher{} }
-
-type occurredMatcher struct{}
-
-func (occurredMatcher) Match(got error) bool { return got != nil }
-func (occurredMatcher) String() string       { return "have occurred (non-nil error)" }
-
-// HaveOccurred matches a non-nil error.
-func HaveOccurred() Matcher[error] { return occurredMatcher{} }
-
 type trueMatcher struct{}
 
 func (trueMatcher) Match(got bool) bool { return got }
@@ -116,6 +89,81 @@ func (falseMatcher) String() string      { return "be false" }
 
 // BeFalse matches got == false.
 func BeFalse() Matcher[bool] { return falseMatcher{} }
+
+type occurredMatcher struct{}
+
+func (occurredMatcher) Match(got error) bool { return got != nil }
+func (occurredMatcher) String() string       { return "have occurred (non-nil error)" }
+
+// HaveOccurred matches a non-nil error.
+func HaveOccurred() Matcher[error] { return occurredMatcher{} }
+
+type succeedMatcher struct{}
+
+func (succeedMatcher) Match(got error) bool { return got == nil }
+func (succeedMatcher) String() string       { return "succeed (nil error)" }
+
+// Succeed matches a nil error.
+func Succeed() Matcher[error] { return succeedMatcher{} }
+
+type existingFileMatcher struct{}
+
+func (existingFileMatcher) Match(got string) bool {
+	_, err := os.Stat(got)
+	return err == nil
+}
+func (existingFileMatcher) String() string { return "be an existing file" }
+
+// BeAnExistingFile matches a path that os.Stat can resolve.
+func BeAnExistingFile() Matcher[string] { return existingFileMatcher{} }
+
+type directoryMatcher struct{}
+
+func (directoryMatcher) Match(got string) bool {
+	info, err := os.Stat(got)
+	return err == nil && info.IsDir()
+}
+func (directoryMatcher) String() string { return "be a directory" }
+
+// BeADirectory matches a path that os.Stat resolves to a directory.
+func BeADirectory() Matcher[string] { return directoryMatcher{} }
+
+type containMatcher struct{ substr string }
+
+func (m containMatcher) Match(got string) bool { return strings.Contains(got, m.substr) }
+func (m containMatcher) String() string        { return fmt.Sprintf("contain %q", m.substr) }
+
+// Contain matches strings.Contains(got, substr).
+func Contain(substr string) Matcher[string] { return containMatcher{substr} }
+
+// ContainSubstring is an alias for Contain, matching Gomega's own name.
+func ContainSubstring(substr string) Matcher[string] { return Contain(substr) }
+
+func reflectLen(got any) int {
+	v := reflect.ValueOf(got)
+	switch v.Kind() {
+	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
+		return v.Len()
+	default:
+		panic(fmt.Sprintf("expect: HaveLen/BeEmpty called on %T, which has no length", got))
+	}
+}
+
+type emptyMatcher[T any] struct{}
+
+func (emptyMatcher[T]) Match(got T) bool { return reflectLen(got) == 0 }
+func (emptyMatcher[T]) String() string   { return "be empty" }
+
+// BeEmpty matches a slice, array, map, channel, or string with zero length.
+func BeEmpty[T any]() Matcher[T] { return emptyMatcher[T]{} }
+
+type haveLenMatcher[T any] struct{ n int }
+
+func (m haveLenMatcher[T]) Match(got T) bool { return reflectLen(got) == m.n }
+func (m haveLenMatcher[T]) String() string   { return fmt.Sprintf("have length %d", m.n) }
+
+// HaveLen matches a slice, array, map, channel, or string whose length is n.
+func HaveLen[T any](n int) Matcher[T] { return haveLenMatcher[T]{n} }
 
 type numericMatcher[T cmp.Ordered] struct {
 	op   string
@@ -147,28 +195,6 @@ func BeNumerically[T cmp.Ordered](op string, want T) Matcher[T] {
 	return numericMatcher[T]{op: op, want: want}
 }
 
-type existingFileMatcher struct{}
-
-func (existingFileMatcher) Match(got string) bool {
-	_, err := os.Stat(got)
-	return err == nil
-}
-func (existingFileMatcher) String() string { return "be an existing file" }
-
-// BeAnExistingFile matches a path that os.Stat can resolve.
-func BeAnExistingFile() Matcher[string] { return existingFileMatcher{} }
-
-type directoryMatcher struct{}
-
-func (directoryMatcher) Match(got string) bool {
-	info, err := os.Stat(got)
-	return err == nil && info.IsDir()
-}
-func (directoryMatcher) String() string { return "be a directory" }
-
-// BeADirectory matches a path that os.Stat resolves to a directory.
-func BeADirectory() Matcher[string] { return directoryMatcher{} }
-
 type panicMatcher struct{}
 
 func (panicMatcher) Match(got func()) (panicked bool) {
@@ -184,29 +210,3 @@ func (panicMatcher) String() string { return "panic" }
 
 // Panic matches a func() that panics when called.
 func Panic() Matcher[func()] { return panicMatcher{} }
-
-func reflectLen(got any) int {
-	v := reflect.ValueOf(got)
-	switch v.Kind() {
-	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
-		return v.Len()
-	default:
-		panic(fmt.Sprintf("expect: HaveLen/BeEmpty called on %T, which has no length", got))
-	}
-}
-
-type haveLenMatcher[T any] struct{ n int }
-
-func (m haveLenMatcher[T]) Match(got T) bool { return reflectLen(got) == m.n }
-func (m haveLenMatcher[T]) String() string   { return fmt.Sprintf("have length %d", m.n) }
-
-// HaveLen matches a slice, array, map, channel, or string whose length is n.
-func HaveLen[T any](n int) Matcher[T] { return haveLenMatcher[T]{n} }
-
-type emptyMatcher[T any] struct{}
-
-func (emptyMatcher[T]) Match(got T) bool { return reflectLen(got) == 0 }
-func (emptyMatcher[T]) String() string   { return "be empty" }
-
-// BeEmpty matches a slice, array, map, channel, or string with zero length.
-func BeEmpty[T any]() Matcher[T] { return emptyMatcher[T]{} }
