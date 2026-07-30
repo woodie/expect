@@ -305,3 +305,26 @@ growth policy for these three specifically -- neither came from an actual
 matchers; `ContainSubstring`/`HaveLen`/`BeEmpty` are the deliberate, named
 exception, added for naming parity with Gomega rather than a call site
 that needed them.
+
+## Makefile added: build/test/lint/check, matching gorderly/gomeleon/humane
+
+`expect` had no Makefile at all -- reviewed `gorderly`'s and `gomeleon`'s
+(both binaries: `build`/`install`/`lint`/`test`/`check`) and `humane`'s
+(a pure library like `expect`, so `lint`/`test`/`check` only, no
+`build`/`install`) to find the right shape. `expect` has no `main`
+package, so no binary to build or install -- `build` here is
+`go build ./...`, a compile-only sanity check, with no `install` target
+(nothing to copy to `~/go/bin`).
+
+`test` pipes through `gorderly -fd`, matching `humane`'s own Makefile
+exactly rather than plain `go test -v`: `expect`'s suite already dogfoods
+`spec` (`describe`/`context`/`it`), and `spec`'s subtests join with `/` in
+`go test -v`'s flat output -- `gorderly` is what turns that back into a
+real indented RSpec-style tree, the same reason `humane` (also spec+expect)
+reaches for it. `check` stays terse (silent on pass, full log on failure),
+using plain `go test ./...` so it doesn't depend on `gorderly` being
+installed -- same split every other repo's Makefile uses.
+
+README's new "Development" section documents the four targets plus a
+fallback (`go test -v ./...` / `go test ./...`) for a reader without
+`gorderly` on `PATH`, matching `humane`'s README precedent.

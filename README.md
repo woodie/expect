@@ -140,6 +140,19 @@ Everything else -- `To`/`NotTo`/`ToNot`, matcher names, overall call
 shape -- matches Gomega's own vocabulary, so porting a Gomega call site is
 close to search-and-replace.
 
+## Development
+
+```
+make build    # go build ./... -- expect is a library, nothing to install
+make test     # verbose, dogfoods spec + gorderly on expect's own suite
+make lint     # golangci-lint
+make check    # terse: silent on success, full log on failure
+```
+
+`make test` pipes through [`gorderly`](https://github.com/woodie/gorderly)
+for RSpec-style documentation output; without it installed, run
+`go test -v ./...` or `go test ./...` directly instead.
+
 ## Learn more
 
 - [`gorderly`'s docs/FRAMEWORK.md](https://github.com/woodie/gorderly/blob/main/docs/FRAMEWORK.md) --
