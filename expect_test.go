@@ -105,6 +105,36 @@ func TestExpect(t *testing.T) {
 			})
 		})
 
+		describe("ContainSubstring", func() {
+			it("is an alias for Contain", func() {
+				expect(ContainSubstring("world").Match("hello world"), t).To(BeTrue())
+				expect(ContainSubstring("world").Match("hello"), t).To(BeFalse())
+			})
+		})
+
+		describe("HaveLen", func() {
+			it("matches a slice of the given length", func() {
+				expect(HaveLen[[]int](3).Match([]int{1, 2, 3}), t).To(BeTrue())
+				expect(HaveLen[[]int](3).Match([]int{1, 2}), t).To(BeFalse())
+			})
+
+			it("matches a string of the given length", func() {
+				expect(HaveLen[string](5).Match("hello"), t).To(BeTrue())
+			})
+		})
+
+		describe("BeEmpty", func() {
+			it("matches an empty slice", func() {
+				expect(BeEmpty[[]int]().Match(nil), t).To(BeTrue())
+				expect(BeEmpty[[]int]().Match([]int{1}), t).To(BeFalse())
+			})
+
+			it("matches an empty string", func() {
+				expect(BeEmpty[string]().Match(""), t).To(BeTrue())
+				expect(BeEmpty[string]().Match("x"), t).To(BeFalse())
+			})
+		})
+
 		describe("Succeed and HaveOccurred", func() {
 			it("Succeed matches a nil error", func() {
 				expect(Succeed().Match(nil), t).To(BeTrue())

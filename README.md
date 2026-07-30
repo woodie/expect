@@ -96,6 +96,7 @@ Every matcher returns a `Matcher[T]`; use with `.To(...)` or `.NotTo(...)`
 | `DeepEqual` | `DeepEqual[T any](want T) Matcher[T]` | `reflect.DeepEqual(got, want)` -- slices, maps, structs |
 | `BeIdenticalTo` | `BeIdenticalTo[T comparable](want T) Matcher[T]` | `got == want` -- named separately from `Equal` for pointer/interface identity checks |
 | `Contain` | `Contain(substr string) Matcher[string]` | `strings.Contains(got, substr)` |
+| `ContainSubstring` | `ContainSubstring(substr string) Matcher[string]` | alias for `Contain` |
 | `Succeed` | `Succeed() Matcher[error]` | `got == nil` |
 | `HaveOccurred` | `HaveOccurred() Matcher[error]` | `got != nil` |
 | `BeTrue` | `BeTrue() Matcher[bool]` | `got == true` |
@@ -104,13 +105,14 @@ Every matcher returns a `Matcher[T]`; use with `.To(...)` or `.NotTo(...)`
 | `BeAnExistingFile` | `BeAnExistingFile() Matcher[string]` | `os.Stat(got)` succeeds |
 | `BeADirectory` | `BeADirectory() Matcher[string]` | `os.Stat(got)` succeeds and is a directory |
 | `Panic` | `Panic() Matcher[func()]` | calling `got` panics |
+| `HaveLen` | `HaveLen[T any](n int) Matcher[T]` | `got`'s length (slice, array, map, channel, or string) equals `n` |
+| `BeEmpty` | `BeEmpty[T any]() Matcher[T]` | `got`'s length is zero |
 
-No `HaveLen`/`BeEmpty` -- Go's builtin `len()` already works generically,
-so `Expect(len(x), t).To(Equal(n))` covers it with no new matcher needed.
-
-This list grows from real call sites, not speculatively -- every matcher
-above came from an actual Gomega call site in `gorderly` or `lambada`.
-Adding one is four lines, no registry or base type to touch:
+This list grows from real call sites, not speculatively -- most matchers
+above came from an actual Gomega call site in `gorderly` or `lambada`;
+`ContainSubstring`, `HaveLen`, and `BeEmpty` are included directly to match
+Gomega's own names, so a ported call site never has to change. Adding a new
+matcher is four lines, no registry or base type to touch:
 
 ```go
 type fooMatcher struct{ want Bar }
@@ -124,18 +126,15 @@ func BeFoo(want Bar) Matcher[Bar] { return fooMatcher{want} }
 ## Where this differs from Gomega
 
 The pitch is "you pass in `t`, otherwise it's Gomega" -- true for most
-call sites, with four real differences:
+call sites, with two real differences:
 
 - **`Equal`/`DeepEqual` are two matchers, not one.** Go's `==` isn't
   defined on slices/maps, so a `comparable`-constrained `Equal` can't also
   do deep comparison the way Gomega's reflection-based `Equal` does.
-- **`Contain`, not `ContainSubstring`.** A deliberate shortening.
-- **No `HaveLen`/`BeEmpty`.** Go's builtin `len()` already covers it (see
-  "Matchers" above).
 - **Occasional explicit `[T]`.** `BeIdenticalTo[http.Handler](mux)`,
-  `BeNumerically[time.Duration](">", 0)` -- needed when `want`'s type
-  doesn't let Go infer `T`. Gomega never needs this, since it isn't
-  generic.
+  `BeNumerically[time.Duration](">", 0)`, `HaveLen[[]scan](1)` -- needed
+  when `want`'s type doesn't let Go infer `T`. Gomega never needs this,
+  since it isn't generic.
 
 Everything else -- `To`/`NotTo`/`ToNot`, matcher names, overall call
 shape -- matches Gomega's own vocabulary, so porting a Gomega call site is

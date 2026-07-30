@@ -82,6 +82,9 @@ func (m containMatcher) String() string        { return fmt.Sprintf("contain %q"
 // Contain matches strings.Contains(got, substr).
 func Contain(substr string) Matcher[string] { return containMatcher{substr} }
 
+// ContainSubstring is an alias for Contain, matching Gomega's own name.
+func ContainSubstring(substr string) Matcher[string] { return Contain(substr) }
+
 type succeedMatcher struct{}
 
 func (succeedMatcher) Match(got error) bool { return got == nil }
@@ -181,3 +184,29 @@ func (panicMatcher) String() string { return "panic" }
 
 // Panic matches a func() that panics when called.
 func Panic() Matcher[func()] { return panicMatcher{} }
+
+func reflectLen(got any) int {
+	v := reflect.ValueOf(got)
+	switch v.Kind() {
+	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
+		return v.Len()
+	default:
+		panic(fmt.Sprintf("expect: HaveLen/BeEmpty called on %T, which has no length", got))
+	}
+}
+
+type haveLenMatcher[T any] struct{ n int }
+
+func (m haveLenMatcher[T]) Match(got T) bool { return reflectLen(got) == m.n }
+func (m haveLenMatcher[T]) String() string   { return fmt.Sprintf("have length %d", m.n) }
+
+// HaveLen matches a slice, array, map, channel, or string whose length is n.
+func HaveLen[T any](n int) Matcher[T] { return haveLenMatcher[T]{n} }
+
+type emptyMatcher[T any] struct{}
+
+func (emptyMatcher[T]) Match(got T) bool { return reflectLen(got) == 0 }
+func (emptyMatcher[T]) String() string   { return "be empty" }
+
+// BeEmpty matches a slice, array, map, channel, or string with zero length.
+func BeEmpty[T any]() Matcher[T] { return emptyMatcher[T]{} }

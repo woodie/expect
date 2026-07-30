@@ -109,14 +109,16 @@ not a new one.
   Nothing in `gorderly` or `lambada` currently needs polling assertions.
 - No custom-matcher combinators (`And`/`Or`/`Not` wrapping other Matchers).
   Every real call site so far only needed one matcher at a time.
-- No `HaveLen`/`BeEmpty`. Drafted as `HaveLen[T any](n int) Matcher[T]`,
-  then dropped while porting `lambada`'s real `Expect(scans).To(HaveLen(1))`
-  call sites: neither argument is of type `T`, so every call would need an
-  explicit type argument Go can't infer, e.g. `expect.HaveLen[[]scan](1)` --
-  exactly the ceremony the builtin `len()` already avoids. Real lesson from
-  porting real call sites, not a hypothetical: `expect.That(t,
-  len(scans)).To(expect.Equal(1))` reads just as well with zero new
-  matcher code.
+- ~~No `HaveLen`/`BeEmpty`.~~ Superseded -- see "Reversal: `ContainSubstring`,
+  `HaveLen`, `BeEmpty` added after all" below. Drafted as `HaveLen[T
+  any](n int) Matcher[T]`, then dropped while porting `lambada`'s real
+  `Expect(scans).To(HaveLen(1))` call sites: neither argument is of type
+  `T`, so every call would need an explicit type argument Go can't infer,
+  e.g. `expect.HaveLen[[]scan](1)` -- exactly the ceremony the builtin
+  `len()` already avoids. Real lesson from porting real call sites, not a
+  hypothetical: `expect.That(t, len(scans)).To(expect.Equal(1))` reads just
+  as well with zero new matcher code -- true as far as it went, but not the
+  whole story; see the reversal below.
 
 ## expect_test.go now dogfoods spec too
 
@@ -273,3 +275,33 @@ both settled on -- see either repo's own `docs/COWORK.md`, "Reversal:
 moved off the `woodie/spec` fork" section, for the fuller why). README
 updated to point at `config_test.go` instead of `expect_test.go` for the
 alias, and to drop its `github.com/woodie/spec` cross-reference.
+
+## Reversal: `ContainSubstring`, `HaveLen`, `BeEmpty` added after all
+
+Both "Contain, not ContainSubstring" and "no HaveLen/BeEmpty" were
+documented as deliberate differences from Gomega -- true, but each one put
+a footnote in the README that a person migrating a real Gomega call site
+had to stop and read before they could tell whether their code still
+compiled. Woodie's framing: `NotTo`/`ToNot` already establish the pattern
+of shipping the Gomega spelling as a plain alias rather than making people
+learn a shortened name, so the same treatment should apply here instead of
+explaining the difference away.
+
+`ContainSubstring` is now a one-line alias for `Contain`, same shape as
+`ToNot`/`NotTo`. `HaveLen`/`BeEmpty` are real additions, not aliases -- no
+existing matcher already covers them -- implemented via
+`reflect.ValueOf(got).Len()` against `T any` rather than a
+`comparable`/`cmp.Ordered`-style constraint, since length applies across
+slices, arrays, maps, channels, and strings, none of which share a builtin
+constraint. Both fall into the same "occasional explicit `[T]`" bucket
+`BeIdenticalTo`/`BeNumerically` already established -- `HaveLen[T
+any](n int)` can't infer `T` from `n` any more than the original draft
+could, but that's no longer treated as disqualifying, since the README
+already documents (and accepts) that ceremony for two other matchers.
+
+This is a real reversal of the "grow real-usage-first, not speculatively"
+growth policy for these three specifically -- neither came from an actual
+`gorderly`/`lambada` call site this time. The reasoning stands for future
+matchers; `ContainSubstring`/`HaveLen`/`BeEmpty` are the deliberate, named
+exception, added for naming parity with Gomega rather than a call site
+that needed them.
