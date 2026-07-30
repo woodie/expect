@@ -18,18 +18,6 @@ BDD-style testing. Paired with [`spec`](https://github.com/sclevine/spec)'s
 on its own -- in a plain `go test` file, no `describe`/`context`/`it` required -- it also suits
 anyone who just wants Gomega's `expect()` syntax.
 
-Gomega itself works standalone too (no Ginkgo required), but still asks for a per-test wrapper;
-`expect` skips that step and threads `t` straight into the call:
-
-```go
-// Gomega, standalone -- wrap *testing.T once, assert off the wrapper.
-g := NewWithT(t)
-g.Expect(f.HasCow()).To(BeTrue())
-
-// expect -- no wrapper, t goes straight into the call.
-Expect(f.HasCow(), t).To(BeTrue())
-```
-
 ```go
 func TestCalculator(t *testing.T) {
     spec.Run(t, "Calculator", func(t *testing.T, describe spec.G, it spec.S) {
@@ -158,6 +146,18 @@ call sites, with two real differences:
 Everything else -- `To`/`NotTo`/`ToNot`, matcher names, overall call
 shape -- matches Gomega's own vocabulary, so porting a Gomega call site is
 close to search-and-replace.
+
+Gomega itself works standalone too (no Ginkgo required), but still asks for a per-test wrapper;
+`expect` skips that step and threads `t` straight into the call:
+
+```go
+// Gomega, standalone -- wrap *testing.T once, assert off the wrapper.
+g := NewWithT(t)
+g.Expect(f.HasCow()).To(BeTrue())
+
+// expect -- no wrapper, t goes straight into the call.
+Expect(f.HasCow(), t).To(BeTrue())
+```
 
 ## Development
 
