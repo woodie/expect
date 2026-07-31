@@ -13,21 +13,21 @@ lowercase alias (see "Setup" below) so call sites read lowercase, as in this exa
 
 ```go
 func TestCalculator(t *testing.T) {
-    spec.Run(t, "Calculator", func(t *testing.T, describe spec.G, it spec.S) {
-        context, before := describe, it.Before
+    spec.Run(t, "Calculator", func(t *testing.T, context spec.G, it spec.S) {
+        describe := context
 
         var calculator *Calculator
-        before(func() { calculator = NewCalculator() })
+        it.BeforeEach(func() { calculator = NewCalculator() })
 
         context("with 5 entered", func() {
-            before(func() { calculator.Enter(5) })
+            it.BeforeEach(func() { calculator.Enter(5) })
 
             describe("#DivideBy", func() {
                 var divisor int
                 subject := func() int { return calculator.DivideBy(divisor) }
 
                 context("when the divisor is 1", func() {
-                    before(func() { divisor = 1 })
+                    it.BeforeEach(func() { divisor = 1 })
 
                     it("has no remainder", func() {
                         expect(subject(), t).To(Equal(0))
@@ -35,7 +35,7 @@ func TestCalculator(t *testing.T) {
                 })
 
                 context("when the divisor is 3", func() {
-                    before(func() { divisor = 3 })
+                    it.BeforeEach(func() { divisor = 3 })
 
                     it("has a remainder of 2", func() {
                         expect(subject(), t).To(Equal(2))

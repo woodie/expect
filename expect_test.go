@@ -35,13 +35,13 @@ func (s *spyT) Errorf(format string, args ...interface{}) {
 }
 
 func TestExpect(t *testing.T) {
-	spec.Run(t, "expect", func(t *testing.T, describe spec.G, it spec.S) {
-		context, before, after := describe, it.Before, it.After
+	spec.Run(t, "expect", func(t *testing.T, context spec.G, it spec.S) {
+		describe := context
 
 		describe("To ̸NotTo ̸ToNot", func() {
 			var pass, fail *spyT
 
-			before(func() {
+			it.BeforeEach(func() {
 				pass, fail = &spyT{}, &spyT{}
 			})
 
@@ -128,12 +128,12 @@ func TestExpect(t *testing.T) {
 		describe("BeAnExistingFile and BeADirectory", func() {
 			var dir string
 
-			before(func() {
+			it.BeforeEach(func() {
 				dir, _ = os.MkdirTemp("", "expect-*")
 			})
 
 			// after runs explicit teardown, since dir here isn't managed by t.TempDir().
-			after(func() {
+			it.AfterEach(func() {
 				_ = os.RemoveAll(dir)
 			})
 

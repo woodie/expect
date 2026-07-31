@@ -277,6 +277,35 @@ moved off the `woodie/spec` fork" section, for the fuller why). README
 updated to point at `config_test.go` instead of `expect_test.go` for the
 alias, and to drop its `github.com/woodie/spec` cross-reference.
 
+## Second reversal: back on `woodie/spec`, this time for BeforeEach/AfterEach/JustBeforeEach
+
+Different shape from the reversal above -- no `RunAliased`, no six-
+parameter signature. `go.mod` picks up `woodie/spec` v0.2.0 via a plain
+`replace` directive (`replace github.com/sclevine/spec =>
+github.com/woodie/spec v0.2.0`), since the fork keeps upstream's module
+path unchanged. The fork adds `BeforeEach`/`AfterEach`/`JustBeforeEach`
+(`Before`/`After` still work, deprecated via `staticcheck`'s `SA1019`,
+not removed) -- see `woodie/spec`'s own `docs/COWORK.md` for the full
+history.
+
+`expect_test.go`'s `before(...)`/`after(...)` calls (via the
+`it.Before`/`it.After` method values) became `it.BeforeEach(...)`/
+`it.AfterEach(...)`, called qualified rather than aliased -- three hook
+names made the old one-line destructuring cluttered. Separately: the
+`describe, it.Before, it.After` destructuring's first element flipped
+direction. `expect_test.go` genuinely calls both `describe(...)` (for
+each matcher: `describe("Equal", ...)`, `describe("Contain", ...)`, etc.)
+and `context(...)` (once, for "given an unknown operator"), so the
+`spec.Run` parameter is now named `context` and `describe := context` is
+declared right below it -- matching the account-wide rule that the alias
+only gets declared where a file actually calls the aliased name (see
+`gorderly`'s `docs/COWORK.md` and `docs/FRAMEWORK.md` for the fuller
+reasoning and the repos where no alias is needed at all).
+
+Not yet verified against a real Go toolchain -- no Go in this sandbox.
+`go mod tidy && make check` on the user's own Mac is the next step,
+remembering to commit `go.sum` alongside `go.mod` before pushing.
+
 ## Reversal: `ContainSubstring`, `HaveLen`, `BeEmpty` added after all
 
 Both "Contain, not ContainSubstring" and "no HaveLen/BeEmpty" were
