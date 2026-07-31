@@ -137,12 +137,20 @@ call sites, with two real differences:
   since it isn't generic.
 
 Everything else -- `To`/`NotTo`/`ToNot`, matcher names, overall call
-shape -- matches Gomega's own vocabulary, so porting a Gomega call site is
-close to search-and-replace.  Gomega itself works standalone too
-(no Ginkgo required), but still asks for a per-test wrapper;
-`expect` skips that step and threads `t` straight into the call:
+shape -- matches Gomega's own vocabulary on purpose: a team can start on
+plain `go test`, adopt `expect` and [`spec`](https://github.com/sclevine/spec)
+for the RSpec-style structure and generics-safe assertions, and still have
+a clear path to Ginkgo/Gomega later if they ever need it -- porting a call
+site either direction is close to search-and-replace. Gomega itself works
+standalone too (no Ginkgo required), but still asks for a per-test
+wrapper; `expect` skips that step and threads `t` straight into the call.
 
 ```go
+// plain go test -- no matcher library at all.
+if !f.HasCow() {
+    t.Error("expected a cow")
+}
+
 // Gomega, standalone -- wrap *testing.T once, assert off the wrapper.
 g := NewWithT(t)
 g.Expect(f.HasCow()).To(BeTrue())
