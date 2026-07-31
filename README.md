@@ -144,6 +144,7 @@ a clear path to Ginkgo/Gomega later if they ever need it -- porting a call
 site either direction is close to search-and-replace. Gomega itself works
 standalone too (no Ginkgo required), but still asks for a per-test
 wrapper; `expect` skips that step and threads `t` straight into the call.
+Same assertion, three ways, fewest lines last:
 
 ```go
 // plain go test -- no matcher library at all.
