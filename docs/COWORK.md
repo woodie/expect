@@ -361,3 +361,24 @@ two of them sees the same sequence. Along the way, noticed `BeIdenticalTo`
 has no test coverage in `expect_test.go` at all -- pre-existing gap, not
 introduced by this reorder, left as-is since fixing it wasn't part of the
 ask.
+
+## v0.3.0 shipped: `ContainSubstring`/`HaveLen`/`BeEmpty`, all three consumers bumped
+
+Tagged and released as `v0.3.0` (`docs/releases/v0.3.0.md`), confirmed via
+`make check` on the user's own Mac before tagging, CI green on the push.
+`gorderly`, `lambada`, and `humane` all bumped their `go.mod` pin from
+`v0.2.0` to `v0.3.0` in the same session -- no breaking changes, so none of
+the three needed their own version bump, just the pin update.
+
+Real gotcha hit rolling out all three at once: the hand-off for each was
+"run `go mod tidy`, then `make check`/`go test`," which regenerates
+`go.sum` locally but doesn't commit it -- `git push`ing just the `go.mod`
+bump commit (already staged/committed before the tidy ran) ships a stale
+`go.sum`, and a clean CI checkout fails with `missing go.sum entry for
+module providing package github.com/woodie/expect`. `gorderly` caught it
+first; fixed with a follow-up commit adding the `go.sum` diff (not an
+amend -- the bump was already pushed), same fix applied to `lambada` and
+`humane` pre-emptively. Generalized into
+`~/workspace/woodie/docs/COWORK.md`'s "Shared libraries across sibling
+repos" section so the next library bump's hand-off states the commit step
+explicitly instead of assuming it.
