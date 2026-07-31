@@ -109,10 +109,11 @@ Every matcher returns a `Matcher[T]`; use with `.To(...)` or `.NotTo(...)`
 | `Panic` | `Panic() Matcher[func()]` | calling `got` panics |
 
 This list grows from real call sites, not speculatively -- most matchers
-above came from an actual Gomega call site in `gorderly` or `lambada`;
-`ContainSubstring`, `HaveLen`, and `BeEmpty` are included directly to match
-Gomega's own names, so a ported call site never has to change. Adding a new
-matcher is four lines, no registry or base type to touch:
+above came from an actual Gomega call site ported into a real Go codebase,
+not a guess at future need. `ContainSubstring`, `HaveLen`, and `BeEmpty`
+are included directly to match Gomega's own names, so a ported call site
+never has to change. Adding a new matcher is four lines, no registry or
+base type to touch:
 
 ```go
 type fooMatcher struct{ want Bar }
