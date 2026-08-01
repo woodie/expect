@@ -176,7 +176,7 @@ for RSpec-style documentation output; without it installed, run
 
 ## Learn more
 
-- [`gorderly`'s docs/FRAMEWORK.md](https://github.com/woodie/gorderly/blob/main/docs/FRAMEWORK.md) --
+- [`gorderly`](https://github.com/woodie/gorderly)'s [FRAMEWORK](https://github.com/woodie/gorderly/blob/main/docs/FRAMEWORK.md) --
   full suites combining `spec` + `expect`: context nesting, the `subject`
   pattern, stubbing, `httptest`, and interface test doubles.
 - [`sclevine/spec`](https://github.com/sclevine/spec) -- the structural/
