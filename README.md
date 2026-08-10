@@ -9,7 +9,7 @@
 A small, dependency-free matcher library for Go's standard `testing` package. Gomega-style 
 assertions, built on Go generics, with no test runner or framework to adopt. Add a one-line 
 lowercase alias (see "Setup" below) so call sites read lowercase, as in this example using
-[`spec`](https://github.com/sclevine/spec).
+[`spec`](https://github.com/woodie/spec).
 
 ```go
 func TestCalculator(t *testing.T) {
@@ -49,7 +49,7 @@ func TestCalculator(t *testing.T) {
 
 Every assertion is a plain function call against whatever `*testing.T`/
 `*testing.B`/`testing.TB` your test already has -- drops into `go test`,
-table-driven tests, [`spec`](https://github.com/sclevine/spec) suites, or
+table-driven tests, [`spec`](https://github.com/woodie/spec) suites, or
 anything else built on stdlib `testing`, nothing to install beyond the
 import.
 
@@ -84,6 +84,15 @@ Every `it` in the package can then call `expect(...)` lowercase, as in the
 example above. See
 [`config_test.go`](https://github.com/woodie/expect/blob/main/config_test.go)
 for the real version.
+
+The import path stays `github.com/sclevine/spec` -- [`woodie/spec`](https://github.com/woodie/spec)
+keeps upstream's own module path unchanged, so picking up the fork's
+`BeforeEach`/`AfterEach`/`JustBeforeEach` (used above) is a `go.mod` `replace`
+directive, not an import change:
+
+```
+replace github.com/sclevine/spec => github.com/woodie/spec v0.2.0
+```
 
 ## Matchers
 
@@ -139,7 +148,7 @@ call sites, with two real differences:
 
 Everything else -- `To`/`NotTo`/`ToNot`, matcher names, overall call
 shape -- matches Gomega's own vocabulary on purpose: a team can start on
-plain `go test`, adopt `expect` and [`spec`](https://github.com/sclevine/spec)
+plain `go test`, adopt `expect` and [`spec`](https://github.com/woodie/spec)
 for the RSpec-style structure and generics-safe assertions, and still have
 a clear path to Ginkgo/Gomega later if they ever need it -- porting a call
 site either direction is close to search-and-replace. Gomega itself works
@@ -179,5 +188,8 @@ for RSpec-style documentation output; without it installed, run
 - [`gorderly`](https://github.com/woodie/gorderly)'s [FRAMEWORK](https://github.com/woodie/gorderly/blob/main/docs/FRAMEWORK.md) --
   full suites combining `spec` + `expect`: context nesting, the `subject`
   pattern, stubbing, `httptest`, and interface test doubles.
-- [`sclevine/spec`](https://github.com/sclevine/spec) -- the structural/
-  lifecycle half of the pairing; `expect` has no dependency on it.
+- [`woodie/spec`](https://github.com/woodie/spec) -- the structural/lifecycle
+  half of the pairing; `expect` has no dependency on it. Our fork of
+  [`sclevine/spec`](https://github.com/sclevine/spec) (see that fork's own
+  README for why it exists), picked up via the `go.mod` `replace` directive
+  above for `BeforeEach`/`AfterEach`/`JustBeforeEach`.
