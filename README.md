@@ -73,7 +73,7 @@ package calculator_test
 import (
     "testing"
 
-    "github.com/sclevine/spec"
+    "github.com/woodie/spec"
     . "github.com/woodie/expect"
 )
 
@@ -85,13 +85,13 @@ example above. See
 [`config_test.go`](https://github.com/woodie/expect/blob/main/config_test.go)
 for the real version.
 
-The import path stays `github.com/sclevine/spec` -- [`woodie/spec`](https://github.com/woodie/spec)
-keeps upstream's own module path unchanged, so picking up the fork's
-`BeforeEach`/`AfterEach`/`JustBeforeEach` (used above) is a `go.mod` `replace`
-directive, not an import change:
+The import is `github.com/woodie/spec` -- [`woodie/spec`](https://github.com/woodie/spec)
+is `woodie`'s own fork of upstream `sclevine/spec`, published under its own
+module path, so picking up `BeforeEach`/`AfterEach`/`JustBeforeEach` (used
+above) is a plain `go.mod` `require`, no `replace` directive needed:
 
 ```
-replace github.com/sclevine/spec => github.com/woodie/spec v0.2.0
+require github.com/woodie/spec v0.3.0
 ```
 
 ## Matchers
@@ -189,7 +189,7 @@ for RSpec-style documentation output; without it installed, run
   full suites combining `spec` + `expect`: context nesting, the `subject`
   pattern, stubbing, `httptest`, and interface test doubles.
 - [`woodie/spec`](https://github.com/woodie/spec) -- the structural/lifecycle
-  half of the pairing; `expect` has no dependency on it. Our fork of
-  [`sclevine/spec`](https://github.com/sclevine/spec) (see that fork's own
-  README for why it exists), picked up via the `go.mod` `replace` directive
-  above for `BeforeEach`/`AfterEach`/`JustBeforeEach`.
+  half of the pairing; `expect` has no dependency on it. `woodie`'s own fork
+  of upstream `sclevine/spec` (see that fork's own README for why it exists),
+  picked up via the plain `go.mod` `require` above for
+  `BeforeEach`/`AfterEach`/`JustBeforeEach`.
