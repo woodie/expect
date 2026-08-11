@@ -411,3 +411,13 @@ amend -- the bump was already pushed), same fix applied to `lambada` and
 `~/workspace/woodie/docs/COWORK.md`'s "Shared libraries across sibling
 repos" section so the next library bump's hand-off states the commit step
 explicitly instead of assuming it.
+
+## `woodie/spec` module rename: dropped the `replace` directive
+
+Picked up `woodie/spec` v0.3.0 (see that fork's own `docs/COWORK.md` and
+`woodie/spec#3`), which renamed its module declaration to its own path.
+`go.mod`'s `require github.com/sclevine/spec v1.4.0` plus `replace
+github.com/sclevine/spec => github.com/woodie/spec v0.2.0` became a single
+plain `require github.com/woodie/spec v0.3.0`. `expect_test.go`'s import
+switched to match; README's "Setup" and "Learn more" sections rewritten
+since both described the now-gone `replace`-based story.
